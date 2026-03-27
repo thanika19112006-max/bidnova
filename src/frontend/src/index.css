@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("/assets/fonts/DMSans.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/assets/fonts/JetBrainsMono.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* Dark navy + gold theme */
+    --radius: 0.75rem;
+    --background: 0.12 0.025 255;
+    --foreground: 0.96 0.005 255;
+    --card: 0.16 0.025 255;
+    --card-foreground: 0.96 0.005 255;
+    --popover: 0.14 0.025 255;
+    --popover-foreground: 0.96 0.005 255;
+    --primary: 0.75 0.12 85;
+    --primary-foreground: 0.12 0.025 255;
+    --secondary: 0.2 0.025 255;
+    --secondary-foreground: 0.92 0.005 255;
+    --muted: 0.2 0.025 255;
+    --muted-foreground: 0.55 0.015 255;
+    --accent: 0.75 0.12 85;
+    --accent-foreground: 0.12 0.025 255;
+    --destructive: 0.55 0.22 27;
+    --destructive-foreground: 0.96 0 0;
+    --border: 0.24 0.025 255;
+    --input: 0.22 0.025 255;
+    --ring: 0.75 0.12 85;
+    --chart-1: 0.75 0.12 85;
+    --chart-2: 0.55 0.18 260;
+    --chart-3: 0.65 0.15 160;
+    --chart-4: 0.7 0.15 30;
+    --chart-5: 0.6 0.12 200;
+    --sidebar: 0.1 0.02 255;
+    --sidebar-foreground: 0.96 0.005 255;
+    --sidebar-primary: 0.75 0.12 85;
+    --sidebar-primary-foreground: 0.12 0.025 255;
+    --sidebar-accent: 0.18 0.025 255;
+    --sidebar-accent-foreground: 0.96 0.005 255;
+    --sidebar-border: 0.22 0.025 255;
+    --sidebar-ring: 0.75 0.12 85;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "DM Sans", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Playfair Display", Georgia, serif;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: "JetBrains Mono", monospace;
+  }
+}
