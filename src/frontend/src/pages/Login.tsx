@@ -3,33 +3,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
-import { apiLogin } from "../lib/authApi";
 
 export default function Login() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-    try {
-      const { token, user } = await apiLogin(email, password);
-      localStorage.setItem("auth_token", token);
-      localStorage.setItem("auth_user", JSON.stringify(user));
+    setEmailError(null);
+    setPasswordError(null);
+
+    let valid = true;
+
+    if (!email.trim()) {
+      setEmailError("Email address is required.");
+      valid = false;
+    }
+
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters.");
+      valid = false;
+    }
+
+    if (valid) {
       if (rememberMe) localStorage.setItem("remember_me", "true");
       navigate({ to: "/userhome" });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -49,8 +54,8 @@ export default function Login() {
               }}
             />
           </div>
-          <h1 className="text-xl font-semibold text-white mt-3 mb-1">
-            Welcome back
+          <h1 className="text-2xl font-bold text-white mt-3 mb-1">
+            BidNova Login
           </h1>
           <p className="text-gray-400 text-sm">Sign in to continue bidding</p>
         </div>
@@ -60,6 +65,7 @@ export default function Login() {
             onSubmit={handleSubmit}
             className="space-y-5"
             data-ocid="login.form"
+            noValidate
           >
             <div className="space-y-1.5">
               <Label
@@ -74,14 +80,26 @@ export default function Login() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  required
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError(null);
+                  }}
                   data-ocid="login.input"
-                  className="pl-10 bg-navy-surface border-navy-light text-white placeholder:text-gray-600 focus-visible:ring-gold focus-visible:ring-2"
+                  className={`pl-10 bg-navy-surface border-navy-light text-white placeholder:text-gray-600 focus-visible:ring-gold focus-visible:ring-2 ${
+                    emailError ? "border-red-500" : ""
+                  }`}
                 />
               </div>
+              {emailError && (
+                <p
+                  data-ocid="login.error_state"
+                  className="text-red-400 text-xs mt-1"
+                >
+                  {emailError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -105,12 +123,16 @@ export default function Login() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  required
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(null);
+                  }}
                   data-ocid="login.input"
-                  className="pl-10 pr-10 bg-navy-surface border-navy-light text-white placeholder:text-gray-600 focus-visible:ring-gold focus-visible:ring-2"
+                  className={`pl-10 pr-10 bg-navy-surface border-navy-light text-white placeholder:text-gray-600 focus-visible:ring-gold focus-visible:ring-2 ${
+                    passwordError ? "border-red-500" : ""
+                  }`}
                 />
                 <button
                   type="button"
@@ -126,6 +148,14 @@ export default function Login() {
                   )}
                 </button>
               </div>
+              {passwordError && (
+                <p
+                  data-ocid="login.error_state"
+                  className="text-red-400 text-xs mt-1"
+                >
+                  {passwordError}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -144,29 +174,12 @@ export default function Login() {
               </Label>
             </div>
 
-            {error && (
-              <div
-                data-ocid="login.error_state"
-                className="bg-red-900/40 border border-red-500/50 rounded-lg px-4 py-3 text-red-400 text-sm"
-              >
-                {error}
-              </div>
-            )}
-
             <Button
               type="submit"
-              disabled={isLoading}
               data-ocid="login.submit_button"
               className="w-full bg-gold hover:bg-gold-dark text-navy font-bold py-3 text-base rounded-xl h-12"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
+              Sign In
             </Button>
           </form>
 
