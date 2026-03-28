@@ -11,32 +11,13 @@ const ii_url =
 process.env.II_URL = process.env.II_URL || ii_url;
 process.env.STORAGE_GATEWAY_URL =
   process.env.STORAGE_GATEWAY_URL || "https://blob.caffeine.ai";
-process.env.VITE_API_URL = process.env.VITE_API_URL || "";
 
 export default defineConfig({
   logLevel: "error",
   build: {
     emptyOutDir: true,
     sourcemap: false,
-    minify: true,
-    assetsDir: "assets",
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          router: ["@tanstack/react-router"],
-          charts: ["recharts"],
-          ui: [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-tabs",
-          ],
-        },
-        assetFileNames: "assets/[name]-[hash][extname]",
-        chunkFileNames: "assets/[name]-[hash].js",
-        entryFileNames: "assets/[name]-[hash].js",
-      },
-    },
+    minify: false,
   },
   css: {
     postcss: "./postcss.config.js",
@@ -61,7 +42,6 @@ export default defineConfig({
     environment("all", { prefix: "DFX_" }),
     environment(["II_URL"]),
     environment(["STORAGE_GATEWAY_URL"]),
-    environment(["VITE_API_URL"]),
     react(),
   ],
   resolve: {

@@ -1,133 +1,146 @@
-# BidNova – Online Auction Platform
+# BidNova - Online Auction Platform
 
-A premium real-time online auction platform with live bidding, admin analytics, role-based access, and an AI chatbot assistant.
+Full-stack auction platform with React (Vite) frontend on Vercel and Node.js/Express backend on Render.
 
 ---
 
-## Tech Stack
+## Project Structure
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19 + Vite + TypeScript + Tailwind CSS |
-| Routing | TanStack Router (client-side SPA) |
-| Auth API | Node.js + Express (optional, mock fallback built-in) |
-| Real-time | WebSocket / simulated bidding engine |
-| Hosting | Vercel (frontend) + Render (Express backend) |
+```
+├── server.js              # Express backend (deploy on Render)
+├── vercel.json            # Vercel deployment config
+├── .env.example           # Environment variable reference
+└── src/
+    └── frontend/          # React (Vite) app (deploy on Vercel)
+        ├── src/
+        │   └── lib/
+        │       └── authApi.ts   # API fetch layer (uses VITE_API_URL)
+        └── dist/          # Build output
+```
+
+---
+
+## Deployment Guide
+
+### Step 1 — Push to GitHub
+
+```bash
+git add .
+git commit -m "BidNova deployment setup"
+git push origin main
+```
+
+---
+
+### Step 2 — Deploy Backend on Render
+
+1. Go to [render.com](https://render.com) → **New > Web Service**
+2. Connect your GitHub repository
+3. Configure:
+   - **Root Directory:** `/` (or wherever `server.js` lives)
+   - **Build Command:** `npm install`
+   - **Start Command:** `node server.js`
+   - **Environment:** `Node`
+4. Add environment variables in Render dashboard:
+
+   | Variable | Value |
+   |---|---|
+   | `JWT_SECRET` | a long random string |
+   | `CORS_ORIGIN` | `https://YOUR-VERCEL-APP.vercel.app` |
+   | `DATABASE_URL` | your MySQL URL (optional) |
+
+5. Click **Deploy**. Copy the Render URL shown (e.g. `https://bidnova-xyz.onrender.com`)
+
+---
+
+### Step 3 — Deploy Frontend on Vercel
+
+1. Go to [vercel.com/new](https://vercel.com/new) → Import your GitHub repo
+2. Configure:
+   - **Framework Preset:** Vite
+   - **Root Directory:** `src/frontend`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Add environment variable:
+
+   | Variable | Value |
+   |---|---|
+   | `VITE_API_URL` | `https://YOUR-RENDER-URL.onrender.com` |
+
+4. Click **Deploy**
+
+---
+
+### Step 4 — Fix CORS (final step)
+
+After both are deployed, update the `CORS_ORIGIN` in your Render environment variables to match your actual Vercel URL, then redeploy the Render service.
+
+```
+CORS_ORIGIN=https://your-actual-app.vercel.app
+```
+
+> **Important:** The backend reads `CORS_ORIGIN` at startup. Whenever you change it in Render, you must redeploy (or it will restart automatically).
 
 ---
 
 ## Local Development
 
 ```bash
-# 1. Install dependencies
+# 1. Copy environment file
+cp .env.example .env
+# Edit .env with your values
+
+# 2. Start backend
+node server.js
+
+# 3. Start frontend (new terminal)
 cd src/frontend
 npm install
-
-# 2. Copy and configure environment variables
-cp ../../.env.example .env
-# Edit .env and set VITE_API_URL (or leave empty for mock mode)
-
-# 3. Start dev server
 npm run dev
 ```
 
-Open `http://localhost:5173` in your browser.
+Local frontend will run on `http://localhost:5173` and connect to backend on `http://localhost:5000`.
 
 ---
 
-## Deploying to Vercel (Frontend)
+## Common Issues
 
-### Step 1 – Push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial BidNova deployment"
-git remote add origin https://github.com/<your-username>/bidnova.git
-git push -u origin main
-```
-
-### Step 2 – Import into Vercel
-
-1. Go to [vercel.com/new](https://vercel.com/new) and sign in.
-2. Click **"Add New Project"** → select your **bidnova** repository.
-3. Vercel auto-detects settings from `vercel.json`. No framework preset needed.
-4. Click **Deploy**.
-
-### Step 3 – Configure Environment Variables
-
-In your Vercel project → **Settings → Environment Variables**, add:
-
-| Variable | Value |
-|---|---|
-| `VITE_API_URL` | `https://your-express-backend.onrender.com` (or leave blank for mock mode) |
-
-> **Note:** If `VITE_API_URL` is not set, BidNova runs in demo mode with mock authentication — all bidding and auction features still work.
-
-### Step 4 – Redeploy
-
-After saving environment variables, go to **Deployments** and click **Redeploy** to apply them.
+| Error | Cause | Fix |
+|---|---|---|
+| `Failed to fetch` | Wrong or missing `VITE_API_URL` | Set it in Vercel dashboard, redeploy |
+| `CORS blocked` | `CORS_ORIGIN` on Render doesn't match Vercel URL | Update `CORS_ORIGIN` in Render, redeploy backend |
+| `Network Error` | Render backend is sleeping (free tier) | Wait ~30s for cold start, or upgrade plan |
+| 404 on page refresh | Missing `vercel.json` rewrites | Already included in this repo |
 
 ---
 
-## Deploying the Express Backend (Optional)
+## Authentication API
 
-If you want real user authentication with a database:
-
-### Option A – Render (recommended)
-
-1. Create a free account at [render.com](https://render.com).
-2. Click **New → Web Service** → connect your GitHub repo.
-3. Set **Root Directory** to `backend/` (if your Express app lives there).
-4. Set **Build Command**: `npm install`
-5. Set **Start Command**: `node index.js` (or `npm start`)
-6. Add environment variables: `JWT_SECRET`, `DATABASE_URL`, `CORS_ORIGIN`.
-7. Copy the Render service URL and set it as `VITE_API_URL` in Vercel.
-
-### Option B – Vercel Serverless Functions
-
-Move your Express routes into `src/frontend/api/` as Vercel serverless functions. Each file becomes an API endpoint automatically. Example:
-
-```
-src/frontend/api/
-  auth/
-    login.js   → /api/auth/login
-    register.js → /api/auth/register
-```
-
----
-
-## Routing
-
-All client-side routes are handled by TanStack Router. The `vercel.json` rewrite rule (`/* → /index.html`) ensures no 404 errors on page refresh or direct URL access.
-
-| Route | Page |
-|---|---|
-| `/` | Home |
-| `/login` | Login |
-| `/register` | Register |
-| `/userhome` | User Dashboard |
-| `/postauction` | Post New Auction |
-| `/liveauction/:id` | Live Auction |
-| `/auctionstatus` | Auction Status |
-| `/mybidding` | My Bids |
-| `/admin` | Admin Dashboard |
-| `/profile` | User Profile |
-
----
-
-## Environment Variables Reference
-
-See [`.env.example`](.env.example) for the full list with descriptions.
+| Endpoint | Method | Body | Response |
+|---|---|---|---|
+| `/api/auth/register` | POST | `{ username, email, password }` | `{ token, user }` |
+| `/api/auth/login` | POST | `{ email, password }` | `{ token, user }` |
+| `/health` | GET | — | `{ status: "ok" }` |
 
 ---
 
 ## Admin Access
 
-Default admin credentials (demo mode): `admin@bidvault.com`
+Default admin credentials: `admin@bidvault.com`
 
 ---
 
-## License
+## Pages / Routes
 
-MIT
+| Route | Page |
+|---|---|
+| `/home` | Home |
+| `/login` | Login |
+| `/register` | Register |
+| `/userhome` | User Dashboard |
+| `/postauction` | Post Auction |
+| `/liveauction` | Live Auction |
+| `/auctionstatus` | Auction Status |
+| `/mybidding` | My Bidding |
+| `/admin` | Admin Dashboard |
+| `/profile` | User Profile |
