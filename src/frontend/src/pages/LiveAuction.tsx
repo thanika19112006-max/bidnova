@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CountdownTimer } from "../components/CountdownTimer";
+import { WinnerDeclarationModal } from "../components/WinnerDeclarationModal";
 import { useAuctions } from "../context/AuctionContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
@@ -33,6 +34,8 @@ const BOT_NAMES = [
   "Bidder_491",
 ];
 
+const dummyWinner = { item: "Camera", highestBid: 15000, winner: "John Doe" };
+
 function randomBot() {
   return BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
 }
@@ -45,7 +48,6 @@ function formatTimeAgo(date: Date): string {
 }
 
 export default function LiveAuction() {
-  // Use catch-all params since route could be /liveauction/$id or /auction/$id
   const params = useParams({ strict: false });
   const auctionId = (params as { id?: string }).id ?? "";
   const navigate = useNavigate();
@@ -58,6 +60,8 @@ export default function LiveAuction() {
   const [isWinning, setIsWinning] = useState(false);
   const [antiSnipeAlert, setAntiSnipeAlert] = useState(false);
   const [, forceRender] = useState(0);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [hasBids, setHasBids] = useState(true);
   const isWinningRef = useRef(isWinning);
   isWinningRef.current = isWinning;
 
@@ -93,6 +97,17 @@ export default function LiveAuction() {
     const interval = setInterval(runBotBid, 3000);
     return () => clearInterval(interval);
   }, [runBotBid]);
+
+  // Auto-show winner modal when timer hits zero — must be before early return
+  useEffect(() => {
+    if (!auction) return;
+    const timeLeft = auction.endTime.getTime() - Date.now();
+    const active = auction.status === "active";
+    if (timeLeft <= 0 && active) {
+      const t = setTimeout(() => setShowWinnerModal(true), 500);
+      return () => clearTimeout(t);
+    }
+  });
 
   if (!auction) {
     return (
@@ -130,7 +145,6 @@ export default function LiveAuction() {
       return;
     }
 
-    // Anti-sniping
     if (isLast30s) {
       dispatch({ type: "EXTEND_AUCTION", auctionId, seconds: 60 });
       setAntiSnipeAlert(true);
@@ -503,7 +517,7 @@ export default function LiveAuction() {
               </div>
             )}
 
-            {/* Winner Banner */}
+            {/* Winner Banner (inline, for completed auctions) */}
             {!isActive && auction.status === "completed" && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -537,6 +551,15 @@ export default function LiveAuction() {
           </div>
         </div>
       </div>
+
+      {/* Winner Declaration Modal */}
+      <WinnerDeclarationModal
+        isOpen={showWinnerModal}
+        onClose={() => setShowWinnerModal(false)}
+        hasBids={hasBids}
+        onToggleBids={() => setHasBids((prev) => !prev)}
+        winnerData={dummyWinner}
+      />
     </div>
   );
 }
